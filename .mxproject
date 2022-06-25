@@ -10,8 +10,8 @@ CDefines=USE_HAL_DRIVER;STM32F103xE;USE_HAL_DRIVER;USE_HAL_DRIVER;
 SourceFiles=;;
 
 [PreviousGenFiles]
-HeaderPath=E:/STM32_Demo/demo/Inc
+HeaderPath=D:/STM32/STM32-Demo/Inc
 HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=E:/STM32_Demo/demo/Src
+SourcePath=D:/STM32/STM32-Demo/Src
 SourceFiles=stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;
 

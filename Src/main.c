@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 /* USER CODE END Includes */
 
@@ -62,17 +63,14 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-	GPIO_PinState Key_Down;
-	GPIO_PinState Echo;
-	int CycleNum=0;
-	int Time=0;
 	uint8_t RxBuffer[3];
 	GPIO_PinState GPIO_PIN_5_State=GPIO_PIN_RESET;
 	_Bool LedState=true;
 	char LedOn[]="the led in on";
 	char LedOff[]="the led in off";
-	const char Off[]="OFF";
-	const char On[]="ONN";
+	uint32_t CaptureValue=0;
+	double Length=0;
+	_Bool Capturing=false;
 /* USER CODE END 0 */
 
 /**
@@ -121,10 +119,9 @@ int main(void)
   while (1)
   {
 		unsigned char data[8]="hello\r\n";
-		//HAL_UART_Receive();
-		//HAL_UART_Transmit(&huart1,(uint8_t*)data,7,1000);	
-		//LedState=!LedState;
-		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, (GPIO_PinState)LedState);
+		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_SET);
+		HAL_Delay(1);
+		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_RESET);
 		HAL_Delay(500);
 		
     /* USER CODE END WHILE */
@@ -192,7 +189,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 72;
+  htim1.Init.Prescaler = 71;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 50000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -275,43 +272,24 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_5|GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PE4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  /*Configure GPIO pin : PE10 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PE5 */
+  /*Configure GPIO pin : PB5 */
   GPIO_InitStruct.Pin = GPIO_PIN_5;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PB5 PB8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -361,7 +339,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	
+
+	if(Capturing==false)
+	{
+		Capturing=true;
+		__HAL_TIM_DISABLE(htim);
+		__HAL_TIM_SET_COUNTER(htim, 0);
+		TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1);
+		TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+		__HAL_TIM_ENABLE(htim);
+		CaptureValue=HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+		Capturing=true;
+		Capturing=true;
+		Capturing=true;
+
+	}
+	else
+	{
+		Capturing=false;
+		CaptureValue=HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+		Length=CaptureValue*0.00017;
+		HAL_UART_Transmit(&huart1,(uint8_t*)CaptureValue,4,1000);
+		TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1);
+		TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+	}
 }
 /* USER CODE END 4 */
 
