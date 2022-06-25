@@ -122,7 +122,7 @@ int main(void)
 		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_SET);
 		HAL_Delay(1);
 		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_RESET);
-		HAL_Delay(500);
+		HAL_Delay(1000);
 		
     /* USER CODE END WHILE */
 
@@ -358,12 +358,37 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	{
 		Capturing=false;
 		CaptureValue=HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-		Length=CaptureValue*0.00017;
-		HAL_UART_Transmit(&huart1,(uint8_t*)CaptureValue,4,1000);
+		Length=CaptureValue*0.017;//cm
+		printf("distance:%fcm\n",Length);
+		//HAL_UART_Transmit(&huart1,(uint8_t*)CaptureValue,4,1000);
 		TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1);
 		TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
 	}
 }
+
+#if 1
+#pragma import(__use_no_semihosting)             
+//标准库需要的支持函数                 
+struct __FILE 
+{ 
+	int handle; 
+
+}; 
+
+FILE __stdout;       
+//定义_sys_exit()以避免使用半主机模式    
+void _sys_exit(int x) 
+{ 
+	x = x; 
+} 
+//重定义fputc函数 
+int fputc(int ch, FILE *f)
+{      
+	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+    USART1->DR = (uint8_t) ch;      
+	return ch;
+}
+#endif 
 /* USER CODE END 4 */
 
 /**
