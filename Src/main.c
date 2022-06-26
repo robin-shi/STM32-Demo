@@ -343,15 +343,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	if(Capturing==false)
 	{
 		Capturing=true;
-		__HAL_TIM_DISABLE(htim);
+//		__HAL_TIM_DISABLE(htim);
 		__HAL_TIM_SET_COUNTER(htim, 0);
 		TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1);
 		TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-		__HAL_TIM_ENABLE(htim);
-		CaptureValue=HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-		Capturing=true;
-		Capturing=true;
-		Capturing=true;
+//		__HAL_TIM_ENABLE(htim);
 
 	}
 	else
